@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>WishSave</title>
+<style>
+*{box-sizing:border-box}
+:root{box-sizing:border-box;--bg:#f5f6f4;--cd:#fff;--tx:#14191a;--mu:#68727a;--bd:#e5e8e5;--g:#0f9d64;--gl:#e2f5ec;--on:#fff;--rd:#c62828;--rl:#fdeaea;--am:#a86a00;--al:#fdf1d8;--sh:0 4px 20px rgba(16,30,24,.07);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0e1210;--cd:#171c19;--tx:#eef2ef;--mu:#93a09a;--bd:#262d29;--g:#3ddc97;--gl:#123a29;--on:#06281a;--rd:#ff8a80;--rl:#3a1a1a;--am:#f5b84b;--al:#3a2c0e;--sh:none}}
+:root[data-theme=dark]{--bg:#0e1210;--cd:#171c19;--tx:#eef2ef;--mu:#93a09a;--bd:#262d29;--g:#3ddc97;--gl:#123a29;--on:#06281a;--rd:#ff8a80;--rl:#3a1a1a;--am:#f5b84b;--al:#3a2c0e;--sh:none}
+[hidden]{display:none!important}
+html,body{margin:0}body{background:var(--bg);color:var(--tx);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:760px;margin:0 auto;padding:18px 16px 120px}
+h1{font-size:28px;letter-spacing:-.6px;margin:0 0 4px}h2{font-size:18px;margin:24px 0 10px}h3{margin:0 0 6px;font-size:17px}p{margin:6px 0}
+.mu{color:var(--mu)}.big{font-size:26px;font-weight:800;letter-spacing:-.6px;line-height:1.2}
+.card{background:var(--cd);border:1px solid var(--bd);border-radius:20px;box-shadow:var(--sh);padding:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-top:12px}.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.two{display:grid;grid-template-columns:1.6fr 1fr;gap:12px}.top{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+.dash{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.ring{--p:0;width:120px;height:120px;border-radius:50%;flex:none;background:conic-gradient(var(--g) calc(var(--p)*1%),var(--bd) 0);display:grid;place-items:center}.ring>div{width:82%;height:82%;border-radius:50%;background:var(--cd);display:grid;place-items:center;font-size:26px;font-weight:800}
+.btn{background:var(--g);color:var(--on);border:0;border-radius:14px;padding:12px 18px;font:700 15px inherit;cursor:pointer;min-height:44px;transition:transform .15s}.btn:active{transform:scale(.97)}
+.btn.gh{background:var(--gl);color:var(--g)}.btn.dn{background:var(--rl);color:var(--rd)}.btn.sm{padding:8px 12px;min-height:38px;font-size:14px}.btn:disabled{opacity:.6;cursor:wait}
+.lnk{background:none;border:0;padding:0;font:inherit;font-weight:700;color:inherit;text-align:left;cursor:pointer}
+label{display:block;font-weight:600;font-size:14px;margin-bottom:6px}.f{margin-bottom:14px}small{color:var(--mu);display:block;margin-top:4px}
+input,select{width:100%;padding:12px 14px;border:1.5px solid var(--bd);border-radius:12px;background:var(--cd);color:var(--tx);font:inherit}
+input.bad{border-color:var(--rd)}.err{color:var(--rd);font-size:13px;font-weight:600;margin-top:4px}
+:focus-visible{outline:3px solid var(--g);outline-offset:2px}
+.it{display:flex;gap:14px;padding:14px;border-left:5px solid var(--bd)}.it.progress{border-left-color:var(--am)}.it.almost{border-left-color:#7fd6ae}.it.funded{border-left-color:var(--g);background:var(--gl)}.it.purchased{opacity:.7;border-left-style:dashed}
+.th{width:92px;min-width:92px;height:92px;border-radius:14px;background:var(--gl);display:grid;place-items:center;font-size:36px;overflow:hidden;cursor:pointer}.th img,.hero img{width:100%;height:100%;object-fit:cover}
+.bd{flex:1;min-width:0}.hero{height:180px;border-radius:16px;overflow:hidden;background:var(--gl);display:grid;place-items:center;font-size:64px;margin-bottom:14px}
+.bar{height:10px;background:var(--bd);border-radius:9px;overflow:hidden;margin:8px 0}.bar i{display:block;height:100%;background:var(--g);border-radius:9px;animation:gr .8s ease;transition:width .5s}@keyframes gr{from{width:0}}
+.bdg{font-size:12px;font-weight:700;padding:3px 10px;border-radius:99px;background:var(--bd);display:inline-block}.bdg.progress{background:var(--al);color:var(--am)}.bdg.almost,.bdg.funded{background:var(--gl);color:var(--g)}.bdg.purchased{background:var(--tx);color:var(--bg)}
+.acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.em{text-align:center;padding:32px 18px}.em .ic{font-size:40px}.em b{display:block;font-size:19px;margin:6px 0}.em .btn{margin-top:10px}
+.seg{display:flex;background:var(--bd);border-radius:14px;padding:4px;margin:12px 0}.seg button{flex:1;border:0;background:none;padding:10px;border-radius:11px;font:700 14px inherit;color:var(--mu);cursor:pointer}.seg [aria-pressed=true]{background:var(--cd);color:var(--tx);box-shadow:var(--sh)}
+.note{padding:10px 12px;border-radius:12px;margin-top:10px;font-size:14px;font-weight:600}.note.warn{background:var(--al);color:var(--am)}.note.ok{background:var(--gl);color:var(--g)}
+.sk{display:grid;grid-template-columns:80px 1fr;gap:10px;margin-top:12px}.sk i{display:block;height:16px;border-radius:8px;background:linear-gradient(90deg,var(--bd),var(--gl),var(--bd));background-size:200% 100%;animation:sh 1.1s infinite}.sk .im{height:80px;grid-row:span 3}@keyframes sh{to{background-position:-200% 0}}
+#prev img{width:90px;height:90px;object-fit:cover;border-radius:12px;margin-top:8px}
+nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom,0px));width:min(94vw,520px);display:flex;background:var(--cd);border:1px solid var(--bd);border-radius:22px;box-shadow:0 8px 30px rgba(0,0,0,.14);padding:6px;z-index:5}
+nav button{flex:1;background:none;border:0;padding:6px 2px;border-radius:16px;font:600 11px inherit;color:var(--mu);display:grid;gap:2px;cursor:pointer;min-height:50px}nav span{font-size:18px}nav [aria-current=page]{background:var(--gl);color:var(--g)}.ob nav{display:none}
+#toasts{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);display:grid;gap:8px;z-index:30;width:min(92vw,400px)}
+.toast{background:var(--tx);color:var(--bg);padding:12px 16px;border-radius:14px;font-weight:600;animation:up .3s}.toast.err{background:var(--rd);color:#fff}@keyframes up{from{opacity:0;transform:translateY(-8px)}}
+dialog{border:0;border-radius:22px;padding:22px;width:min(92vw,420px);background:var(--cd);color:var(--tx);box-shadow:0 20px 60px rgba(0,0,0,.3)}dialog::backdrop{background:rgba(0,0,0,.45)}.row{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+@media(max-width:420px){.it{flex-direction:column}.th{width:100%;height:140px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body>
+<main id="app"></main><nav id="nav" aria-label="Main"></nav>
+<div id="toasts" role="status" aria-live="polite"></div><dialog id="dlg" aria-labelledby="dt"></dialog>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+/* Paste values from Supabase → Project Settings → API */
+const SUPABASE_URL='https://mulmgjbufswxrhxifzhv.supabase.co',SUPABASE_ANON_KEY='sb_publishable_UBn3YQB64iP57MAS_e6Aaw_BzoivFis',cfg=!SUPABASE_URL.startsWith('YOUR'),sb=cfg?supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null,
+FAIL="We couldn't save your changes. Please try again.";
+let user=null,syncQ=Promise.resolve();
+const $=s=>document.querySelector(s),uid=()=>crypto.randomUUID(),
+esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),
+CAT=['Tech','Fashion','Home','Travel','Books','Other'],EMO={Tech:'🎧',Fashion:'👟',Home:'🛋️',Travel:'✈️',Books:'📚',Other:'🎁'},
+ISO={'₹':'INR','$':'USD','€':'EUR','£':'GBP'},PRI=['High','Medium','Low'],
+ST={none:['○','Not started'],progress:['◐','In progress'],almost:['◕','Almost funded'],funded:['●','Fully funded'],purchased:['✓','Purchased']},
+NAV=[['dash','🏠','Home'],['list','🛍️','Wishlist'],['add','➕','Add'],['goals','🎯','Goals'],['settings','⚙️','Settings']];
+let S=seed(),view={n:'dash'},tab='active',q='',busy=0,tmpImg='',curUrl='';
+
+/* ---------- storage ---------- */
+function seed(){const s=(name,price,store,cat,pri)=>({id:uid(),name,price,store,cat,pri,target:'',img:'',url:'',done:false});
+return{wallet:null,cur:'₹',monthly:0,items:[s('Mechanical Keyboard',5000,'Amazon','Tech','Medium'),s('Running Shoes',8499,'Nike','Fashion','High'),s('Noise-Cancelling Headphones',24990,'Sony','Tech','Low'),s('Everyday Backpack',1800,'Wildcraft','Fashion','High')]}}
+const toRow=i=>({id:i.id,user_id:user.id,name:i.name,price:i.price,store:i.store,category:i.cat,priority:i.pri,target_date:i.target||null,image_url:i.img||null,url:i.url||null,purchased:!!i.done}),
+fromRow=r=>({id:r.id,name:r.name,price:+r.price,store:r.store||'Unknown store',cat:r.category||'Other',pri:r.priority||'Medium',target:r.target_date||'',img:r.image_url||'',url:r.url||'',done:r.purchased});
+async function loadData(){const[p,i]=await Promise.all([sb.from('profiles').select('*').eq('id',user.id).maybeSingle(),sb.from('items').select('*').order('created_at',{ascending:false})]);
+if(p.error||i.error)throw p.error||i.error;S=p.data?{wallet:+p.data.wallet,cur:p.data.currency,monthly:+p.data.monthly,items:i.data.map(fromRow)}:seed()}
+function save(){syncQ=syncQ.then(async()=>{if(!user||S.wallet===null)return;
+const a=await sb.from('profiles').upsert({id:user.id,wallet:S.wallet,currency:S.cur,monthly:S.monthly,updated_at:new Date().toISOString()});if(a.error)throw a.error;
+if(S.items.length){const b=await sb.from('items').upsert(S.items.map(toRow));if(b.error)throw b.error}}).catch(()=>toast(FAIL,'err'));return 1}
+
+/* ---------- calculations ---------- */
+const fmt=n=>new Intl.NumberFormat(S.cur==='₹'?'en-IN':'en-US',{style:'currency',currency:ISO[S.cur],minimumFractionDigits:0,maximumFractionDigits:2}).format(n),
+dt=d=>new Date(d+'T00:00').toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'}),
+calc=(price,s=S.wallet||0)=>({rem:Math.max(price-s,0),pct:Math.min(s/price*100,100)}),
+stat=i=>{if(i.done)return'purchased';const p=calc(i.price).pct;return p>=100?'funded':p>=75?'almost':p>0?'progress':'none'};
+function eta(i){const{rem}=calc(i.price),a=[];if(rem<=0)return'You can afford this now 🎉';
+if(S.monthly>0){const m=Math.ceil(rem/S.monthly);a.push(`About ${m} month${m>1?'s':''} at ${fmt(S.monthly)}/month`)}
+if(i.target){const ml=Math.max(Math.ceil((new Date(i.target+'T00:00')-Date.now())/2629800000),1);a.push(`Save ${fmt(Math.ceil(rem/ml))}/month to reach it by ${dt(i.target)}`)}
+return a.join(' · ')||'Set a monthly savings amount to see an estimate.'}
+
+/* ---------- ui helpers ---------- */
+function toast(m,t='ok'){const e=document.createElement('div');e.className='toast '+t;e.textContent=(t==='err'?'⚠ ':'✓ ')+m;$('#toasts').append(e);setTimeout(()=>e.remove(),3200)}
+function modal(t,b,btns){const d=$('#dlg');d.innerHTML=`<h3 id="dt">${t}</h3><div>${b}</div><div class="row"></div>`;const r=d.querySelector('.row');
+btns.forEach(([l,c,f])=>{const e=document.createElement('button');e.className='btn '+c;e.textContent=l;e.onclick=()=>{if(f&&f()===false)return;d.close()};r.append(e)});
+if(!d.open)d.showModal();const i=d.querySelector('input');i&&i.focus()}
+const confirmBox=(m,ok,f)=>modal(esc(m),'',[['Cancel','gh'],[ok,'dn',f]]),
+fld=(id,label,inp,hint='')=>`<div class="f"><label for="${id}">${label}</label>${inp}<div class="err" id="${id}-e" role="alert"></div>${hint?`<small>${hint}</small>`:''}</div>`,
+empty=(ic,t,d,b,fn)=>`<div class="card em"><div class="ic" aria-hidden="true">${ic}</div><b>${t}</b><p class="mu">${d}</p>${b?`<button class="btn" onclick="${fn}">${b}</button>`:''}</div>`,
+csel=(id,extra='')=>`<select id="${id}" onchange="${extra}">${Object.keys(ISO).map(k=>`<option value="${k}"${k===S.cur?' selected':''}>${k} ${ISO[k]}</option>`).join('')}</select>`,
+sel=(id,arr,v)=>`<select id="${id}">${arr.map(o=>`<option${o===v?' selected':''}>${o}</option>`).join('')}</select>`;
+function err(id,m){const i=$('#'+id),e=$('#'+id+'-e');if(!i||!e)return!m;e.textContent=m?'⚠ '+m:'';i.classList.toggle('bad',!!m);i.setAttribute('aria-invalid',!!m);i.setAttribute('aria-describedby',id+'-e');return!m}
+const num=v=>{v=String(v).trim().replace(/,/g,'');return/^(\d+\.?\d*|\.\d+)$/.test(v)?parseFloat(v):NaN};
+function vAmt(id,w,z,max=1e8){const v=$('#'+id).value.trim();
+if(!v)return err(id,w+' is required.'),NaN;if(v[0]==='-')return err(id,w+" can't be negative."),NaN;
+const n=num(v);if(isNaN(n))return err(id,'Enter a valid number, like 4999.'),NaN;
+if(!z&&n<=0)return err(id,`Enter a price greater than ${fmt(0)}.`),NaN;
+if(n>max)return err(id,`${w} is too large. Enter less than ${fmt(max)}.`),NaN;err(id,'');return n}
+
+/* ---------- views ---------- */
+const V={};
+function card(i){const s=stat(i),c=calc(i.price),p=i.done?100:c.pct,r=i.done?0:c.rem;
+return `<article class="card it ${s}"><div class="th" onclick="go('detail','${i.id}')" aria-hidden="true">${i.img?`<img src="${i.img}" alt="">`:EMO[i.cat]||'🎁'}</div><div class="bd"><div class="top"><span class="bdg ${s}">${ST[s][0]} ${ST[s][1]}</span><span class="mu">${i.pri} priority</span></div>
+<h3 style="margin-top:8px"><button class="lnk" onclick="go('detail','${i.id}')">${esc(i.name)}</button></h3><p class="mu">${esc(i.store)} · ${i.cat}</p><div class="big">${fmt(i.price)}</div>
+<div class="bar" role="progressbar" aria-label="Savings progress for ${esc(i.name)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(p)}"><i style="width:${p}%"></i></div>
+<div class="top"><b>${Math.round(p)}% saved</b><span class="mu">${fmt(r)} to go</span></div>${acts(i)}</div></article>`}
+const acts=i=>`<div class="acts">${i.done?'':`<button class="btn sm" onclick="addSav('${i.id}')">Add Savings</button>`}<button class="btn sm gh" onclick="go('add','${i.id}')">Edit</button>${i.done?'':`<button class="btn sm gh" onclick="buy('${i.id}')">Mark as Purchased</button>`}<button class="btn sm dn" onclick="del('${i.id}')">Delete</button></div>`;
+
+V.dash=()=>{const a=S.items.filter(i=>!i.done),tot=a.reduce((s,i)=>s+i.price,0),w=S.wallet,rem=Math.max(tot-w,0),p=tot?Math.min(w/tot*100,100):0,fu=a.filter(i=>i.price<=w).length,top=[...a].sort((x,y)=>x.price-y.price).slice(0,3);
+return `<h1>Your savings</h1><p class="mu">See how close you are to everything on your wishlist.</p>
+<section class="card dash" style="margin-top:14px"><div class="ring" style="--p:${p}" role="img" aria-label="${Math.round(p)}% of wishlist funded"><div>${Math.round(p)}%</div></div><div><div class="mu">Current savings</div><div class="big">${fmt(w)}</div><button class="btn gh sm" style="margin-top:8px" onclick="addSav()">+ Add savings</button></div></section>
+<div class="grid">${[['Wishlist value',fmt(tot)],['Total remaining',fmt(rem)],['Overall saved',Math.round(p)+'%'],['Wishlist items',a.length],['Fully funded',fu]].map(([l,v])=>`<div class="card"><div class="mu">${l}</div><div class="big">${v}</div></div>`).join('')}</div>
+${w===0?`<div style="margin-top:12px">${empty('💰','No savings added yet','Add money to your wallet to start tracking your goals.','Add savings','addSav()')}</div>`:''}
+<h2>Closest to funded</h2>${a.length?`<div class="list">${top.map(card).join('')}</div>`:empty('🛍️','Your wishlist is empty','Start adding products you want to save for.','Add your first product',"go('add')")}`};
+
+V.list=()=>`<h1>Wishlist</h1><div class="seg"><button aria-pressed="${tab==='active'}" onclick="tab='active';render()">Wishlist</button><button aria-pressed="${tab==='done'}" onclick="tab='done';render()">Purchased</button></div>
+${tab==='active'?`<div class="f"><label for="sq">Search products</label><input id="sq" type="search" value="${esc(q)}" placeholder="Name, store or category" oninput="q=this.value;list()"></div>`:''}<div id="lst" class="list"></div>`;
+function list(){const done=tab==='done',t=q.trim().toLowerCase(),all=S.items.filter(i=>!!i.done===done),r=all.filter(i=>!t||(i.name+i.store+i.cat).toLowerCase().includes(t)).sort((a,b)=>PRI.indexOf(a.pri)-PRI.indexOf(b.pri));
+$('#lst').innerHTML=r.length?r.map(card).join(''):!all.length?(done?empty('🎉','Nothing purchased yet','Your completed wishlist items will appear here.','View wishlist',"tab='active';render()"):empty('🛍️','Your wishlist is empty','Start adding products you want to save for.','Add your first product',"go('add')")):empty('🔍','No products found','Try a different search or add a new product.','Add a product',"go('add')")}
+
+V.detail=id=>{const i=S.items.find(x=>x.id===id);if(!i)return empty('❓','Product not found','It may have been deleted.','Back to wishlist',"go('list')");
+const s=stat(i),c=calc(i.price),p=i.done?100:c.pct,r=i.done?0:c.rem;
+return `<button class="btn gh sm" onclick="go('list')">← Wishlist</button><section class="card" style="margin-top:12px"><div class="hero">${i.img?`<img src="${i.img}" alt="${esc(i.name)}">`:EMO[i.cat]}</div><span class="bdg ${s}">${ST[s][0]} ${ST[s][1]}</span>
+<h1 style="margin-top:8px">${esc(i.name)}</h1><p class="mu">${esc(i.store)} · ${i.cat} · ${i.pri} priority</p>
+<div class="dash" style="margin:14px 0"><div class="ring" style="--p:${p}" role="img" aria-label="${Math.round(p)}% saved"><div>${Math.round(p)}%</div></div><div><div class="mu">Price</div><div class="big">${fmt(i.price)}</div></div></div>
+<div class="grid" style="margin:0 0 12px"><div><div class="mu">Current savings</div><b>${fmt(S.wallet)}</b></div><div><div class="mu">Amount still required</div><b>${fmt(r)}</b></div><div><div class="mu">Percentage saved</div><b>${Math.round(p)}%</b></div></div>
+<p>${i.done?'You bought this. 🎉':eta(i)}</p>${i.target?`<p class="mu">Target date: ${dt(i.target)}</p>`:''}${i.url?`<p><a href="${esc(i.url)}" target="_blank" rel="noopener">Open product page ↗</a></p>`:''}${acts(i)}</section>`};
+
+V.add=id=>{const i=id&&S.items.find(x=>x.id===id)||{};tmpImg=i.img||'';curUrl=i.url||'';
+return `<h1>${i.id?'Edit product':'Add product'}</h1><p class="mu">${i.id?'Update the details below.':'Paste a link, or upload an image and enter the details.'}</p>
+${i.id?'':`<section class="card" style="margin:14px 0"><h3>Import from a link</h3>${fld('url','Product URL','<input id="url" type="url" inputmode="url" placeholder="https://store.com/product" autocomplete="off">')}
+<button id="impb" class="btn gh" onclick="imp()">Import product</button><div id="imsg" aria-live="polite"></div><div class="sk" id="sk" hidden aria-hidden="true"><i class="im"></i><i></i><i></i><i></i></div></section>`}
+<section class="card" style="margin-top:14px"><h3>Product details</h3>${fld('nm','Product name',`<input id="nm" value="${esc(i.name)}" autocomplete="off">`)}
+<div class="two">${fld('pr','Price',`<input id="pr" inputmode="decimal" value="${i.price||''}" placeholder="e.g. 4999" autocomplete="off">`)}<div class="f"><label for="cu">Currency</label>${csel('cu')}</div></div>
+${fld('st','Store',`<input id="st" value="${esc(i.store==='Unknown store'?'':i.store)}" placeholder="e.g. Amazon" autocomplete="off">`)}
+<div class="two"><div class="f"><label for="ct">Category</label>${sel('ct',CAT,i.cat)}</div><div class="f"><label for="pi">Priority</label>${sel('pi',PRI,i.pri||'Medium')}</div></div>
+${fld('td','Target purchase date (optional)',`<input id="td" type="date" min="${new Date().toISOString().slice(0,10)}" value="${i.target||''}">`)}
+${fld('im','Product image (optional)','<input id="im" type="file" accept="image/*" onchange="pick(event)">')}<div id="prev">${tmpImg?`<img src="${tmpImg}" alt="Product preview">`:''}</div>
+<div class="row" style="justify-content:flex-start"><button id="savb" class="btn" onclick="saveP('${i.id||''}')">${i.id?'Save changes':'Add to wishlist'}</button><button class="btn gh" onclick="go('${i.id?'detail':'list'}','${i.id||''}')">Cancel</button></div></section>`};
+
+V.goals=()=>{const a=S.items.filter(i=>!i.done),has=S.monthly>0||a.some(i=>i.target);
+return `<h1>Savings goals</h1><section class="card" style="margin-top:14px">${fld('mo','Monthly savings amount (optional)',`<input id="mo" inputmode="decimal" value="${S.monthly||''}" placeholder="e.g. 3000" autocomplete="off">`,'Used to estimate how many months each product will take.')}<button class="btn" onclick="setMo()">Save monthly amount</button></section>
+<h2>Estimates</h2>${has&&a.length?a.map(i=>`<article class="card" style="margin-bottom:10px"><h3>${esc(i.name)}</h3><p class="mu">${fmt(calc(i.price).rem)} to go · ${i.pri} priority</p><p><b>${eta(i)}</b></p></article>`).join(''):empty('🎯','No savings goals yet','Set a monthly savings target and see when you can afford your wishlist.','Set monthly amount',"document.getElementById('mo').focus()")}`};
+
+V.settings=()=>`<h1>Settings</h1><section class="card" style="margin-top:14px"><h3>Savings wallet</h3>${fld('wl','Current savings',`<input id="wl" inputmode="decimal" value="${S.wallet}" autocomplete="off">`,'Set your exact savings amount.')}<button class="btn" onclick="setW()">Update wallet</button></section>
+<section class="card" style="margin-top:12px"><h3>Currency</h3><div class="f"><label for="cu2">Show amounts in</label>${csel('cu2','S.cur=this.value;save();render()')}</div></section>
+<section class="card" style="margin-top:12px"><h3>Account</h3><p class="mu">${esc(user.email)}</p><button class="btn gh" onclick="sb.auth.signOut()">Sign out</button></section>
+<section class="card" style="margin-top:12px"><h3>Your data</h3><p class="mu">Your wishlist is saved to your account.</p><button class="btn dn" onclick="reset()">Reset all data</button></section>`;
+const ONB=()=>`<section class="card" style="margin-top:40px"><div style="font-size:40px" aria-hidden="true">💰</div><h1>Welcome to WishSave</h1><p class="mu">Track what you want and see exactly how much more you need to save.</p><div style="height:14px"></div>${fld('w0','How much money do you currently have saved?','<input id="w0" inputmode="decimal" placeholder="e.g. 12000" autocomplete="off">','Enter 0 if you are just starting.')}<button class="btn" onclick="setW0()">Start tracking</button></section>`;
+
+/* ---------- auth ---------- */
+const AUTH=()=>`<section class="card" style="margin-top:40px"><div style="font-size:40px" aria-hidden="true">💰</div><h1>WishSave</h1><p class="mu">Sign in to save your wishlist and sync it across devices.</p>${cfg?'':'<div class="note warn">⚠ Add your Supabase URL and anon key at the top of this file to enable sign-in.</div>'}<div style="height:12px"></div>${fld('em','Email','<input id="em" type="email" autocomplete="email">')}${fld('pw','Password','<input id="pw" type="password" autocomplete="current-password">','At least 6 characters.')}<div class="row" style="justify-content:flex-start"><button id="authb" class="btn" onclick="auth(1)">Sign in</button><button class="btn gh" onclick="auth(0)">Create account</button></div></section>`;
+async function auth(signin){if(busy||!cfg)return;const e=$('#em').value.trim(),p=$('#pw').value,
+okE=/^\S+@\S+\.\S+$/.test(e)?err('em',''):err('em',e?'Please enter a valid email address.':'Email is required.'),okP=p.length>=6?err('pw',''):err('pw',p?'Password must be at least 6 characters.':'Password is required.');
+if(!okE||!okP)return;busy=1;$('#authb').disabled=true;
+const r=signin?await sb.auth.signInWithPassword({email:e,password:p}):await sb.auth.signUp({email:e,password:p});busy=0;
+if(r.error){$('#authb').disabled=false;return err('pw',r.error.message)}
+if(!r.data.session){$('#authb').disabled=false;toast('Check your email to confirm your account, then sign in.')}}
+async function boot(s){user=s?.user||null;S=seed();if(user){try{await loadData()}catch(e){toast("We couldn't load your wishlist. Refresh the page to try again.",'err')}}view={n:'dash'};render()}
+/* ---------- actions ---------- */
+function render(){document.body.classList.toggle('ob',!user||S.wallet===null);$('#app').innerHTML=!user?AUTH():S.wallet===null?ONB():V[view.n](view.id);
+$('#nav').innerHTML=NAV.map(([k,ic,l])=>`<button onclick="go('${k}')"${view.n===k||(k==='list'&&view.n==='detail')?' aria-current="page"':''}><span aria-hidden="true">${ic}</span>${l}</button>`).join('');
+if(user&&view.n==='list'&&S.wallet!==null)list()}
+function go(n,id){view={n,id:id||undefined};window.scrollTo(0,0);render()}
+function setW0(){const n=vAmt('w0','Amount',true);if(isNaN(n))return;S.wallet=n;if(save()){toast('Savings updated.');go('dash')}}
+function setW(){const n=vAmt('wl','Amount',true);if(isNaN(n))return;S.wallet=n;if(save())toast('Savings updated.')}
+function setMo(){const n=vAmt('mo','Monthly amount',true);if(isNaN(n))return;S.monthly=n;if(save()){toast('Savings updated.');render()}}
+function addSav(id){const it=id&&S.items.find(x=>x.id===id);
+modal(it?'Add savings toward '+esc(it.name):'Add savings',fld('sv','Amount to add','<input id="sv" inputmode="decimal" placeholder="e.g. 1500" autocomplete="off">','Savings are shared across your wishlist. Current: '+fmt(S.wallet)),
+[['Cancel','gh'],['Add savings','',()=>{const n=vAmt('sv','Amount',true);if(isNaN(n))return false;
+const ok=()=>{S.wallet+=n;if(save()){toast('Savings updated.');render()}};
+if(it&&S.wallet+n>it.price)return confirmBox(`Your savings would be ${fmt(S.wallet+n)}, more than this product's price of ${fmt(it.price)}. Add anyway?`,'Add anyway',ok),false;ok()}]])}
+function buy(id){const i=S.items.find(x=>x.id===id);i.done=true;S.wallet=Math.max(S.wallet-i.price,0);if(save()){toast('Product marked as purchased.');render()}}
+function del(id){confirmBox('Delete this product from your wishlist?','Delete',()=>{S.items=S.items.filter(x=>x.id!==id);syncQ=syncQ.then(async()=>{const r=await sb.from('items').delete().eq('id',id);if(r.error)throw r.error}).catch(()=>toast(FAIL,'err'));if(save()){toast('Product deleted.');if(view.n==='detail')view={n:'list'};render()}})}
+function reset(){confirmBox('Delete all data and start over?','Reset',()=>{syncQ=syncQ.then(async()=>{await sb.from('items').delete().eq('user_id',user.id);await sb.from('profiles').delete().eq('id',user.id)}).catch(()=>toast(FAIL,'err'));S=seed();view={n:'dash'};render()})}
+function pick(e){const f=e.target.files[0];if(!f)return;
+if(!/^image\//.test(f.type))return err('im','Please choose an image file (JPG, PNG or WebP).');if(f.size>8e6)return err('im','Image is too large. Choose one under 8 MB.');
+const r=new FileReader();r.onload=()=>{const i=new Image();i.onload=()=>{const s=Math.min(1,480/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*s;c.height=i.height*s;c.getContext('2d').drawImage(i,0,0,c.width,c.height);tmpImg=c.toDataURL('image/jpeg',.75);err('im','');$('#prev').innerHTML=`<img src="${tmpImg}" alt="Product preview">`};i.onerror=()=>err('im',"That image couldn't be read. Try another file.");i.src=r.result};r.readAsDataURL(f)}
+async function imp(){if(busy)return;const u=$('#url').value.trim();if(!u)return err('url','Product URL is required.');
+let U;try{U=new URL(u);if(!/^https?:$/.test(U.protocol)||!/^[^.]+(\.[^.]+)+$/.test(U.hostname))throw 0}catch(e){return err('url','Please enter a valid product URL.')}
+err('url','');busy=1;const b=$('#impb');b.disabled=true;b.textContent='Analyzing product...';$('#sk').hidden=false;$('#imsg').innerHTML='';let html='';
+try{const{data,error}=await sb.functions.invoke('import-product',{body:{url:u}});if(error)throw error;const d=data||{};curUrl=u;
+if(d.name&&!$('#nm').value.trim())$('#nm').value=d.name;if(d.store&&!$('#st').value.trim())$('#st').value=d.store;
+const pv=num(d.price??'');if(pv>0&&!$('#pr').value.trim())$('#pr').value=pv;
+const cu=Object.keys(ISO).find(k=>ISO[k]===d.currency);if(cu)$('#cu').value=cu;
+if(d.image&&!tmpImg){tmpImg=d.image;$('#prev').innerHTML=`<img src="${esc(d.image)}" alt="Product preview">`}
+html=d.name&&pv>0?'<div class="note ok">✓ Details imported. Check them before saving.</div>':'<div class="note warn">⚠ We couldn\'t retrieve the product details. You can enter them manually.</div>'}
+catch(e){html='<div class="note warn">⚠ Something went wrong while importing this product.</div>'}
+finally{busy=0;if($('#impb')){$('#imsg').innerHTML=html;$('#sk').hidden=true;b.disabled=false;b.textContent='Import product'}}}
+function saveP(id,force){if(busy)return;const n=$('#nm').value.trim(),okN=n.length>=2?err('nm',''):err('nm',n?'Product name must be at least 2 characters.':'Product name is required.'),
+p=vAmt('pr','Price'),d=$('#td').value,okD=!d||d>=new Date().toISOString().slice(0,10)?err('td',''):err('td',"Target date can't be in the past.");
+if(!okN||isNaN(p)||!okD){const b=document.querySelector('.bad');b&&b.focus();return}
+const o={name:n,price:p,store:$('#st').value.trim()||'Unknown store',cat:$('#ct').value,pri:$('#pi').value,target:d,img:tmpImg,url:curUrl};
+if(!id&&!force&&curUrl&&S.items.some(x=>x.url===curUrl&&!x.done))return modal('Already added','<p>This product is already in your wishlist.</p>',[['View existing','gh',()=>go('detail',S.items.find(x=>x.url===curUrl).id)],['Add anyway','',()=>saveP('',1)]]);
+S.cur=$('#cu').value;if(id)Object.assign(S.items.find(x=>x.id===id),o);else S.items.unshift({id:uid(),done:false,...o});
+if(save()){toast(id?'Changes saved.':'Product added to wishlist.');tab='active';go(id?'detail':'list',id)}}
+$('#app').innerHTML='<p class="mu" style="margin-top:40px">Loading…</p>';
+if(sb)sb.auth.onAuthStateChange((ev,s)=>{if(ev!=='INITIAL_SESSION'&&(s?.user?.id||null)===(user?.id||null))return;setTimeout(()=>boot(s),0)});else render();
+</script></body></html>

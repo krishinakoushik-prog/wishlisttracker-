@@ -45,30 +45,21 @@ dialog{border:0;border-radius:22px;padding:22px;width:min(92vw,420px);background
 </style></head><body>
 <main id="app"></main><nav id="nav" aria-label="Main"></nav>
 <div id="toasts" role="status" aria-live="polite"></div><dialog id="dlg" aria-labelledby="dt"></dialog>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
-/* Paste values from Supabase → Project Settings → API */
-const SUPABASE_URL='https://mulmgjbufswxrhxifzhv.supabase.co',SUPABASE_ANON_KEY='sb_publishable_UBn3YQB64iP57MAS_e6Aaw_BzoivFis',cfg=!SUPABASE_URL.startsWith('YOUR'),sb=cfg?supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null,
-FAIL="We couldn't save your changes. Please try again.";
-let user=null,syncQ=Promise.resolve();
-const $=s=>document.querySelector(s),uid=()=>crypto.randomUUID(),
+/* Product import endpoint. Works as-is when hosted on Vercel with the api/ folder. */
+const IMPORT_API='/api/import';
+const $=s=>document.querySelector(s),KEY='wishsave.v2',uid=()=>Math.random().toString(36).slice(2,9),
 esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),
 CAT=['Tech','Fashion','Home','Travel','Books','Other'],EMO={Tech:'🎧',Fashion:'👟',Home:'🛋️',Travel:'✈️',Books:'📚',Other:'🎁'},
 ISO={'₹':'INR','$':'USD','€':'EUR','£':'GBP'},PRI=['High','Medium','Low'],
 ST={none:['○','Not started'],progress:['◐','In progress'],almost:['◕','Almost funded'],funded:['●','Fully funded'],purchased:['✓','Purchased']},
 NAV=[['dash','🏠','Home'],['list','🛍️','Wishlist'],['add','➕','Add'],['goals','🎯','Goals'],['settings','⚙️','Settings']];
-let S=seed(),view={n:'dash'},tab='active',q='',busy=0,tmpImg='',curUrl='';
+let S=load(),view={n:'dash'},tab='active',q='',busy=0,tmpImg='',curUrl='';
 
 /* ---------- storage ---------- */
-function seed(){const s=(name,price,store,cat,pri)=>({id:uid(),name,price,store,cat,pri,target:'',img:'',url:'',done:false});
-return{wallet:null,cur:'₹',monthly:0,items:[s('Mechanical Keyboard',5000,'Amazon','Tech','Medium'),s('Running Shoes',8499,'Nike','Fashion','High'),s('Noise-Cancelling Headphones',24990,'Sony','Tech','Low'),s('Everyday Backpack',1800,'Wildcraft','Fashion','High')]}}
-const toRow=i=>({id:i.id,user_id:user.id,name:i.name,price:i.price,store:i.store,category:i.cat,priority:i.pri,target_date:i.target||null,image_url:i.img||null,url:i.url||null,purchased:!!i.done}),
-fromRow=r=>({id:r.id,name:r.name,price:+r.price,store:r.store||'Unknown store',cat:r.category||'Other',pri:r.priority||'Medium',target:r.target_date||'',img:r.image_url||'',url:r.url||'',done:r.purchased});
-async function loadData(){const[p,i]=await Promise.all([sb.from('profiles').select('*').eq('id',user.id).maybeSingle(),sb.from('items').select('*').order('created_at',{ascending:false})]);
-if(p.error||i.error)throw p.error||i.error;S=p.data?{wallet:+p.data.wallet,cur:p.data.currency,monthly:+p.data.monthly,items:i.data.map(fromRow)}:seed()}
-function save(){syncQ=syncQ.then(async()=>{if(!user||S.wallet===null)return;
-const a=await sb.from('profiles').upsert({id:user.id,wallet:S.wallet,currency:S.cur,monthly:S.monthly,updated_at:new Date().toISOString()});if(a.error)throw a.error;
-if(S.items.length){const b=await sb.from('items').upsert(S.items.map(toRow));if(b.error)throw b.error}}).catch(()=>toast(FAIL,'err'));return 1}
+function seed(){return{name:'',wallet:null,cur:'₹',monthly:0,items:[]}}
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&Array.isArray(s.items))return s}catch(e){}return seed()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));return 1}catch(e){toast("We couldn't save your changes. Please try again.",'err');return 0}}
 
 /* ---------- calculations ---------- */
 const fmt=n=>new Intl.NumberFormat(S.cur==='₹'?'en-IN':'en-US',{style:'currency',currency:ISO[S.cur],minimumFractionDigits:0,maximumFractionDigits:2}).format(n),
@@ -101,14 +92,14 @@ if(n>max)return err(id,`${w} is too large. Enter less than ${fmt(max)}.`),NaN;er
 /* ---------- views ---------- */
 const V={};
 function card(i){const s=stat(i),c=calc(i.price),p=i.done?100:c.pct,r=i.done?0:c.rem;
-return `<article class="card it ${s}"><div class="th" onclick="go('detail','${i.id}')" aria-hidden="true">${i.img?`<img src="${i.img}" alt="">`:EMO[i.cat]||'🎁'}</div><div class="bd"><div class="top"><span class="bdg ${s}">${ST[s][0]} ${ST[s][1]}</span><span class="mu">${i.pri} priority</span></div>
+return `<article class="card it ${s}"><div class="th" onclick="go('detail','${i.id}')" aria-hidden="true">${i.img?`<img referrerpolicy="no-referrer" src="${i.img}" alt="">`:EMO[i.cat]||'🎁'}</div><div class="bd"><div class="top"><span class="bdg ${s}">${ST[s][0]} ${ST[s][1]}</span><span class="mu">${i.pri} priority</span></div>
 <h3 style="margin-top:8px"><button class="lnk" onclick="go('detail','${i.id}')">${esc(i.name)}</button></h3><p class="mu">${esc(i.store)} · ${i.cat}</p><div class="big">${fmt(i.price)}</div>
 <div class="bar" role="progressbar" aria-label="Savings progress for ${esc(i.name)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(p)}"><i style="width:${p}%"></i></div>
 <div class="top"><b>${Math.round(p)}% saved</b><span class="mu">${fmt(r)} to go</span></div>${acts(i)}</div></article>`}
 const acts=i=>`<div class="acts">${i.done?'':`<button class="btn sm" onclick="addSav('${i.id}')">Add Savings</button>`}<button class="btn sm gh" onclick="go('add','${i.id}')">Edit</button>${i.done?'':`<button class="btn sm gh" onclick="buy('${i.id}')">Mark as Purchased</button>`}<button class="btn sm dn" onclick="del('${i.id}')">Delete</button></div>`;
 
 V.dash=()=>{const a=S.items.filter(i=>!i.done),tot=a.reduce((s,i)=>s+i.price,0),w=S.wallet,rem=Math.max(tot-w,0),p=tot?Math.min(w/tot*100,100):0,fu=a.filter(i=>i.price<=w).length,top=[...a].sort((x,y)=>x.price-y.price).slice(0,3);
-return `<h1>Your savings</h1><p class="mu">See how close you are to everything on your wishlist.</p>
+return `<h1>Hi, ${esc(S.name)} 👋</h1><p class="mu">Here's how close you are to everything on your wishlist.</p>
 <section class="card dash" style="margin-top:14px"><div class="ring" style="--p:${p}" role="img" aria-label="${Math.round(p)}% of wishlist funded"><div>${Math.round(p)}%</div></div><div><div class="mu">Current savings</div><div class="big">${fmt(w)}</div><button class="btn gh sm" style="margin-top:8px" onclick="addSav()">+ Add savings</button></div></section>
 <div class="grid">${[['Wishlist value',fmt(tot)],['Total remaining',fmt(rem)],['Overall saved',Math.round(p)+'%'],['Wishlist items',a.length],['Fully funded',fu]].map(([l,v])=>`<div class="card"><div class="mu">${l}</div><div class="big">${v}</div></div>`).join('')}</div>
 ${w===0?`<div style="margin-top:12px">${empty('💰','No savings added yet','Add money to your wallet to start tracking your goals.','Add savings','addSav()')}</div>`:''}
@@ -121,7 +112,7 @@ $('#lst').innerHTML=r.length?r.map(card).join(''):!all.length?(done?empty('🎉'
 
 V.detail=id=>{const i=S.items.find(x=>x.id===id);if(!i)return empty('❓','Product not found','It may have been deleted.','Back to wishlist',"go('list')");
 const s=stat(i),c=calc(i.price),p=i.done?100:c.pct,r=i.done?0:c.rem;
-return `<button class="btn gh sm" onclick="go('list')">← Wishlist</button><section class="card" style="margin-top:12px"><div class="hero">${i.img?`<img src="${i.img}" alt="${esc(i.name)}">`:EMO[i.cat]}</div><span class="bdg ${s}">${ST[s][0]} ${ST[s][1]}</span>
+return `<button class="btn gh sm" onclick="go('list')">← Wishlist</button><section class="card" style="margin-top:12px"><div class="hero">${i.img?`<img referrerpolicy="no-referrer" src="${i.img}" alt="${esc(i.name)}">`:EMO[i.cat]}</div><span class="bdg ${s}">${ST[s][0]} ${ST[s][1]}</span>
 <h1 style="margin-top:8px">${esc(i.name)}</h1><p class="mu">${esc(i.store)} · ${i.cat} · ${i.pri} priority</p>
 <div class="dash" style="margin:14px 0"><div class="ring" style="--p:${p}" role="img" aria-label="${Math.round(p)}% saved"><div>${Math.round(p)}%</div></div><div><div class="mu">Price</div><div class="big">${fmt(i.price)}</div></div></div>
 <div class="grid" style="margin:0 0 12px"><div><div class="mu">Current savings</div><b>${fmt(S.wallet)}</b></div><div><div class="mu">Amount still required</div><b>${fmt(r)}</b></div><div><div class="mu">Percentage saved</div><b>${Math.round(p)}%</b></div></div>
@@ -136,34 +127,26 @@ ${i.id?'':`<section class="card" style="margin:14px 0"><h3>Import from a link</h
 ${fld('st','Store',`<input id="st" value="${esc(i.store==='Unknown store'?'':i.store)}" placeholder="e.g. Amazon" autocomplete="off">`)}
 <div class="two"><div class="f"><label for="ct">Category</label>${sel('ct',CAT,i.cat)}</div><div class="f"><label for="pi">Priority</label>${sel('pi',PRI,i.pri||'Medium')}</div></div>
 ${fld('td','Target purchase date (optional)',`<input id="td" type="date" min="${new Date().toISOString().slice(0,10)}" value="${i.target||''}">`)}
-${fld('im','Product image (optional)','<input id="im" type="file" accept="image/*" onchange="pick(event)">')}<div id="prev">${tmpImg?`<img src="${tmpImg}" alt="Product preview">`:''}</div>
+${fld('im','Product image (optional)','<input id="im" type="file" accept="image/*" onchange="pick(event)">')}<div id="prev">${tmpImg?`<img referrerpolicy="no-referrer" src="${tmpImg}" alt="Product preview">`:''}</div>
 <div class="row" style="justify-content:flex-start"><button id="savb" class="btn" onclick="saveP('${i.id||''}')">${i.id?'Save changes':'Add to wishlist'}</button><button class="btn gh" onclick="go('${i.id?'detail':'list'}','${i.id||''}')">Cancel</button></div></section>`};
 
 V.goals=()=>{const a=S.items.filter(i=>!i.done),has=S.monthly>0||a.some(i=>i.target);
 return `<h1>Savings goals</h1><section class="card" style="margin-top:14px">${fld('mo','Monthly savings amount (optional)',`<input id="mo" inputmode="decimal" value="${S.monthly||''}" placeholder="e.g. 3000" autocomplete="off">`,'Used to estimate how many months each product will take.')}<button class="btn" onclick="setMo()">Save monthly amount</button></section>
 <h2>Estimates</h2>${has&&a.length?a.map(i=>`<article class="card" style="margin-bottom:10px"><h3>${esc(i.name)}</h3><p class="mu">${fmt(calc(i.price).rem)} to go · ${i.pri} priority</p><p><b>${eta(i)}</b></p></article>`).join(''):empty('🎯','No savings goals yet','Set a monthly savings target and see when you can afford your wishlist.','Set monthly amount',"document.getElementById('mo').focus()")}`};
 
-V.settings=()=>`<h1>Settings</h1><section class="card" style="margin-top:14px"><h3>Savings wallet</h3>${fld('wl','Current savings',`<input id="wl" inputmode="decimal" value="${S.wallet}" autocomplete="off">`,'Set your exact savings amount.')}<button class="btn" onclick="setW()">Update wallet</button></section>
+V.settings=()=>`<h1>Settings</h1><section class="card" style="margin-top:14px"><h3>Your name</h3>${fld('un','Name',`<input id="un" value="${esc(S.name)}" maxlength="40" autocomplete="given-name">`)}<button class="btn" onclick="setName()">Save name</button></section><section class="card" style="margin-top:12px"><h3>Savings wallet</h3>${fld('wl','Current savings',`<input id="wl" inputmode="decimal" value="${S.wallet}" autocomplete="off">`,'Set your exact savings amount.')}<button class="btn" onclick="setW()">Update wallet</button></section>
 <section class="card" style="margin-top:12px"><h3>Currency</h3><div class="f"><label for="cu2">Show amounts in</label>${csel('cu2','S.cur=this.value;save();render()')}</div></section>
-<section class="card" style="margin-top:12px"><h3>Account</h3><p class="mu">${esc(user.email)}</p><button class="btn gh" onclick="sb.auth.signOut()">Sign out</button></section>
-<section class="card" style="margin-top:12px"><h3>Your data</h3><p class="mu">Your wishlist is saved to your account.</p><button class="btn dn" onclick="reset()">Reset all data</button></section>`;
-const ONB=()=>`<section class="card" style="margin-top:40px"><div style="font-size:40px" aria-hidden="true">💰</div><h1>Welcome to WishSave</h1><p class="mu">Track what you want and see exactly how much more you need to save.</p><div style="height:14px"></div>${fld('w0','How much money do you currently have saved?','<input id="w0" inputmode="decimal" placeholder="e.g. 12000" autocomplete="off">','Enter 0 if you are just starting.')}<button class="btn" onclick="setW0()">Start tracking</button></section>`;
+<section class="card" style="margin-top:12px"><h3>Your data</h3><p class="mu">Everything is stored on this device only.</p><button class="btn dn" onclick="reset()">Reset all data</button></section>`;
+const ONB=()=>`<section class="card" style="margin-top:40px"><div style="font-size:40px" aria-hidden="true">💰</div><h1>Welcome to WishSave</h1><p class="mu">Track what you want and see exactly how much more you need to save.</p><div style="height:14px"></div>${fld('nm0','What should we call you?',`<input id="nm0" value="${esc(S.name)}" maxlength="40" placeholder="Your name" autocomplete="given-name">`)}${fld('w0','How much money do you currently have saved?',`<input id="w0" inputmode="decimal" value="${S.wallet??''}" placeholder="e.g. 12000" autocomplete="off">`,'Enter 0 if you are just starting.')}<button class="btn" onclick="setW0()">Start tracking</button></section>`;
 
-/* ---------- auth ---------- */
-const AUTH=()=>`<section class="card" style="margin-top:40px"><div style="font-size:40px" aria-hidden="true">💰</div><h1>WishSave</h1><p class="mu">Sign in to save your wishlist and sync it across devices.</p>${cfg?'':'<div class="note warn">⚠ Add your Supabase URL and anon key at the top of this file to enable sign-in.</div>'}<div style="height:12px"></div>${fld('em','Email','<input id="em" type="email" autocomplete="email">')}${fld('pw','Password','<input id="pw" type="password" autocomplete="current-password">','At least 6 characters.')}<div class="row" style="justify-content:flex-start"><button id="authb" class="btn" onclick="auth(1)">Sign in</button><button class="btn gh" onclick="auth(0)">Create account</button></div></section>`;
-async function auth(signin){if(busy||!cfg)return;const e=$('#em').value.trim(),p=$('#pw').value,
-okE=/^\S+@\S+\.\S+$/.test(e)?err('em',''):err('em',e?'Please enter a valid email address.':'Email is required.'),okP=p.length>=6?err('pw',''):err('pw',p?'Password must be at least 6 characters.':'Password is required.');
-if(!okE||!okP)return;busy=1;$('#authb').disabled=true;
-const r=signin?await sb.auth.signInWithPassword({email:e,password:p}):await sb.auth.signUp({email:e,password:p});busy=0;
-if(r.error){$('#authb').disabled=false;return err('pw',r.error.message)}
-if(!r.data.session){$('#authb').disabled=false;toast('Check your email to confirm your account, then sign in.')}}
-async function boot(s){user=s?.user||null;S=seed();if(user){try{await loadData()}catch(e){toast("We couldn't load your wishlist. Refresh the page to try again.",'err')}}view={n:'dash'};render()}
 /* ---------- actions ---------- */
-function render(){document.body.classList.toggle('ob',!user||S.wallet===null);$('#app').innerHTML=!user?AUTH():S.wallet===null?ONB():V[view.n](view.id);
+function render(){const ob=S.wallet===null||!S.name;document.body.classList.toggle('ob',ob);$('#app').innerHTML=ob?ONB():(view.n==='dash'?'':`<button class="lnk mu" onclick="go('settings')" style="margin-bottom:8px" aria-label="Signed in as ${esc(S.name)}. Open settings">👤 ${esc(S.name)}</button>`)+V[view.n](view.id);
 $('#nav').innerHTML=NAV.map(([k,ic,l])=>`<button onclick="go('${k}')"${view.n===k||(k==='list'&&view.n==='detail')?' aria-current="page"':''}><span aria-hidden="true">${ic}</span>${l}</button>`).join('');
-if(user&&view.n==='list'&&S.wallet!==null)list()}
+if(view.n==='list'&&!ob)list()}
 function go(n,id){view={n,id:id||undefined};window.scrollTo(0,0);render()}
-function setW0(){const n=vAmt('w0','Amount',true);if(isNaN(n))return;S.wallet=n;if(save()){toast('Savings updated.');go('dash')}}
+const vName=id=>{const v=$('#'+id).value.trim();return v.length>=2?(err(id,''),v):(err(id,v?'Name must be at least 2 characters.':'Name is required.'),'')};
+function setW0(){const nm=vName('nm0'),n=vAmt('w0','Amount',true);if(!nm||isNaN(n))return;S.name=nm;S.wallet=n;if(save()){toast('Welcome, '+nm+'!');go('dash')}}
+function setName(){const nm=vName('un');if(!nm)return;S.name=nm;if(save()){toast('Name updated.');render()}}
 function setW(){const n=vAmt('wl','Amount',true);if(isNaN(n))return;S.wallet=n;if(save())toast('Savings updated.')}
 function setMo(){const n=vAmt('mo','Monthly amount',true);if(isNaN(n))return;S.monthly=n;if(save()){toast('Savings updated.');render()}}
 function addSav(id){const it=id&&S.items.find(x=>x.id===id);
@@ -172,20 +155,22 @@ modal(it?'Add savings toward '+esc(it.name):'Add savings',fld('sv','Amount to ad
 const ok=()=>{S.wallet+=n;if(save()){toast('Savings updated.');render()}};
 if(it&&S.wallet+n>it.price)return confirmBox(`Your savings would be ${fmt(S.wallet+n)}, more than this product's price of ${fmt(it.price)}. Add anyway?`,'Add anyway',ok),false;ok()}]])}
 function buy(id){const i=S.items.find(x=>x.id===id);i.done=true;S.wallet=Math.max(S.wallet-i.price,0);if(save()){toast('Product marked as purchased.');render()}}
-function del(id){confirmBox('Delete this product from your wishlist?','Delete',()=>{S.items=S.items.filter(x=>x.id!==id);syncQ=syncQ.then(async()=>{const r=await sb.from('items').delete().eq('id',id);if(r.error)throw r.error}).catch(()=>toast(FAIL,'err'));if(save()){toast('Product deleted.');if(view.n==='detail')view={n:'list'};render()}})}
-function reset(){confirmBox('Delete all data and start over?','Reset',()=>{syncQ=syncQ.then(async()=>{await sb.from('items').delete().eq('user_id',user.id);await sb.from('profiles').delete().eq('id',user.id)}).catch(()=>toast(FAIL,'err'));S=seed();view={n:'dash'};render()})}
+function del(id){confirmBox('Delete this product from your wishlist?','Delete',()=>{S.items=S.items.filter(x=>x.id!==id);if(save()){toast('Product deleted.');if(view.n==='detail')view={n:'list'};render()}})}
+function reset(){confirmBox('Delete all data and start over?','Reset',()=>{try{localStorage.removeItem(KEY)}catch(e){}S=seed();view={n:'dash'};render()})}
 function pick(e){const f=e.target.files[0];if(!f)return;
 if(!/^image\//.test(f.type))return err('im','Please choose an image file (JPG, PNG or WebP).');if(f.size>8e6)return err('im','Image is too large. Choose one under 8 MB.');
-const r=new FileReader();r.onload=()=>{const i=new Image();i.onload=()=>{const s=Math.min(1,480/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*s;c.height=i.height*s;c.getContext('2d').drawImage(i,0,0,c.width,c.height);tmpImg=c.toDataURL('image/jpeg',.75);err('im','');$('#prev').innerHTML=`<img src="${tmpImg}" alt="Product preview">`};i.onerror=()=>err('im',"That image couldn't be read. Try another file.");i.src=r.result};r.readAsDataURL(f)}
+const r=new FileReader();r.onload=()=>{const i=new Image();i.onload=()=>{const s=Math.min(1,480/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*s;c.height=i.height*s;c.getContext('2d').drawImage(i,0,0,c.width,c.height);tmpImg=c.toDataURL('image/jpeg',.75);err('im','');$('#prev').innerHTML=`<img referrerpolicy="no-referrer" src="${tmpImg}" alt="Product preview">`};i.onerror=()=>err('im',"That image couldn't be read. Try another file.");i.src=r.result};r.readAsDataURL(f)}
 async function imp(){if(busy)return;const u=$('#url').value.trim();if(!u)return err('url','Product URL is required.');
 let U;try{U=new URL(u);if(!/^https?:$/.test(U.protocol)||!/^[^.]+(\.[^.]+)+$/.test(U.hostname))throw 0}catch(e){return err('url','Please enter a valid product URL.')}
 err('url','');busy=1;const b=$('#impb');b.disabled=true;b.textContent='Analyzing product...';$('#sk').hidden=false;$('#imsg').innerHTML='';let html='';
-try{const{data,error}=await sb.functions.invoke('import-product',{body:{url:u}});if(error)throw error;const d=data||{};curUrl=u;
-if(d.name&&!$('#nm').value.trim())$('#nm').value=d.name;if(d.store&&!$('#st').value.trim())$('#st').value=d.store;
+try{let d={};
+if(IMPORT_API){const r=await fetch(IMPORT_API+'?url='+encodeURIComponent(u),{signal:AbortSignal.timeout(12000)});if(!r.ok)throw 0;d=await r.json()}
+else{const h=U.hostname.replace(/^www\./,''),p=h.split('.'),k=p.length>2&&p[p.length-2].length<=3?p[p.length-3]:p[p.length-2],g=(U.pathname.split('/').map(x=>{try{return decodeURIComponent(x)}catch(e){return x}}).filter(x=>/[a-z]{3}/i.test(x)&&!/^(dp|product|products|item|p|gp|ip|buy)$/i.test(x))[0]||'').replace(/\.[a-z]+$/i,'').replace(/[-_+]+/g,' ').trim();d={store:k[0].toUpperCase()+k.slice(1),name:g.length>=2?g.replace(/\b\w/g,c=>c.toUpperCase()):''}}
+curUrl=u;if(d.name&&!$('#nm').value.trim())$('#nm').value=d.name;if(d.store&&!$('#st').value.trim())$('#st').value=d.store;
 const pv=num(d.price??'');if(pv>0&&!$('#pr').value.trim())$('#pr').value=pv;
 const cu=Object.keys(ISO).find(k=>ISO[k]===d.currency);if(cu)$('#cu').value=cu;
-if(d.image&&!tmpImg){tmpImg=d.image;$('#prev').innerHTML=`<img src="${esc(d.image)}" alt="Product preview">`}
-html=d.name&&pv>0?'<div class="note ok">✓ Details imported. Check them before saving.</div>':'<div class="note warn">⚠ We couldn\'t retrieve the product details. You can enter them manually.</div>'}
+if(d.image&&!tmpImg){tmpImg=d.image;$('#prev').innerHTML=`<img referrerpolicy="no-referrer" src="${esc(d.image)}" alt="Product preview">`}
+html=d.name&&pv>0?'<div class="note ok">✓ Details imported. Check them before saving.</div>':'<div class="note warn">⚠ We couldn\'t retrieve the product details. You can enter them manually.<small>We filled in what we could from the link.</small></div>'}
 catch(e){html='<div class="note warn">⚠ Something went wrong while importing this product.</div>'}
 finally{busy=0;if($('#impb')){$('#imsg').innerHTML=html;$('#sk').hidden=true;b.disabled=false;b.textContent='Import product'}}}
 function saveP(id,force){if(busy)return;const n=$('#nm').value.trim(),okN=n.length>=2?err('nm',''):err('nm',n?'Product name must be at least 2 characters.':'Product name is required.'),
@@ -195,6 +180,5 @@ const o={name:n,price:p,store:$('#st').value.trim()||'Unknown store',cat:$('#ct'
 if(!id&&!force&&curUrl&&S.items.some(x=>x.url===curUrl&&!x.done))return modal('Already added','<p>This product is already in your wishlist.</p>',[['View existing','gh',()=>go('detail',S.items.find(x=>x.url===curUrl).id)],['Add anyway','',()=>saveP('',1)]]);
 S.cur=$('#cu').value;if(id)Object.assign(S.items.find(x=>x.id===id),o);else S.items.unshift({id:uid(),done:false,...o});
 if(save()){toast(id?'Changes saved.':'Product added to wishlist.');tab='active';go(id?'detail':'list',id)}}
-$('#app').innerHTML='<p class="mu" style="margin-top:40px">Loading…</p>';
-if(sb)sb.auth.onAuthStateChange((ev,s)=>{if(ev!=='INITIAL_SESSION'&&(s?.user?.id||null)===(user?.id||null))return;setTimeout(()=>boot(s),0)});else render();
+render();
 </script></body></html>
